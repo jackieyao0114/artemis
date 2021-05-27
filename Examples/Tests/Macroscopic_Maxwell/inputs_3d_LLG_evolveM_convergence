@@ -9,7 +9,7 @@
 # space-time convergence
 
 max_step = 5
-plt.period = 5
+plt.intervals = 5
 amr.n_cell = 32 32 32
 amr.max_grid_size = 16
 
