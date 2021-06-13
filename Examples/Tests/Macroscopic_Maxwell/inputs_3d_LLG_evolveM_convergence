@@ -14,12 +14,12 @@ amr.n_cell = 32 32 32
 amr.max_grid_size = 16
 
 #max_step = 10
-#plt.period = 10
+#plt.intervals = 10
 #amr.n_cell = 64 64 64
 #amr.max_grid_size = 32
 
 #max_step = 20
-#plt.period = 20
+#plt.intervals = 20
 #amr.n_cell = 128 128 128
 #amr.max_grid_size = 64
 
