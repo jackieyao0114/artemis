@@ -300,8 +300,8 @@ struct CartesianYeeAlgorithm {
     }
     }
 
-     /**
-     * Perform divergence of gradient along z on M field when exchange coupling is on*/
+/**
+     // Perform divergence of gradient along z on M field when exchange coupling is on
    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     static amrex::Real LaplacianDz_Mag (
         amrex::Array4<amrex::Real> const& F,
@@ -334,6 +334,41 @@ struct CartesianYeeAlgorithm {
              return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
           }
     }
+    }
+**/
+    /**
+     * Perform divergence of gradient along z on M field when exchange coupling is on*/
+    // Dirichlet B.C. hacked in
+   AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    static amrex::Real LaplacianDz_Mag (
+        amrex::Array4<amrex::Real> const& F,
+        amrex::Real const * const coefs_z, int const n_coefs_z, amrex::Real const Ms_lo_z, amrex::Real const Ms_hi_z,
+        int const i, int const j, int const k, int const ncomp=0, int const nodality=0) {
+
+        amrex::Real const inv_dz = coefs_z[0];
+    
+    if ( Ms_hi_z == 0.) //non-magnetic on right
+        {
+            if (ncomp != nodality){ // if tangential components
+                return inv_dz*inv_dz*(2.*F(i,j,k,ncomp) - 5.*F(i,j,k-1,ncomp) + 4.*F(i,j,k-2,ncomp) - F(i,j,k-3,ncomp));
+            }
+            else{ // normal components
+                return inv_dz*(0. - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+            }
+        }
+    else if (Ms_lo_z == 0.) //non-magnetic on left
+        {
+            if (nodality == 2){ // at z face
+                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+            }
+            else { // x or y faces
+                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - 2 * inv_dz * F(i,j,k,ncomp));
+            }
+        } 
+    else // regular cases inside material
+        {
+            return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+        }
     }
 
      /**
