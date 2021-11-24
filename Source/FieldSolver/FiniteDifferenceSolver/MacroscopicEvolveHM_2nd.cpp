@@ -462,6 +462,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
     while (!stop_iter){
 
         warpx.FillBoundaryH(warpx.getngE());
+        warpx.FillBoundaryM(warpx.getngE());
 
         for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
             auto& mag_alpha_mf = macroscopic_properties->getmag_alpha_mf();
@@ -893,6 +894,14 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             }
                         }
 
+                        // // Hack in Dirichlet BC
+                        // if (k == 32){
+                        //     //amrex::Abort("code gets here");
+                        //     M_zface(i, j, k, 0) = 0;
+                        //     M_zface(i, j, k, 1) = mag_Ms_arrz; // pin M to be in y direction
+                        //     M_zface(i, j, k, 2) = 0;
+                        // }
+                        
                         // calculate M_error_zface
                         // x,y,z component on z-faces of grid
                         for (int icomp = 0; icomp < 3; ++icomp) {
@@ -1115,11 +1124,12 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
             }
         }
         else{
-            const auto& period = warpx.Geom(lev).periodicity();
+            //const auto& period = warpx.Geom(lev).periodicity();
             // Copy Mfield to Mfield_previous and fill periodic/interior ghost cells
             for (int i = 0; i < 3; i++){
                 MultiFab::Copy(*Mfield_prev[i], *Mfield[i], 0, 0, 3, Mfield[i]->nGrow());
-                (*Mfield_prev[i]).FillBoundary(Mfield[i]->nGrowVect(), period);
+                //(*Mfield_prev[i]).FillBoundary(Mfield[i]->nGrowVect(), period);
+                Mfield_prev[i]->FillBoundary(Mfield_prev[i]->nGrowVect(), warpx.Geom(lev).periodicity());
             }
         }
 
