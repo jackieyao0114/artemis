@@ -899,6 +899,8 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                             M_zface(i, j, k, 0) = 0;
                             M_zface(i, j, k, 1) = mag_Ms_arrz; // pin M to be in y direction
                             M_zface(i, j, k, 2) = 0;
+                            if (i == 1 && j == 1){
+                            std::cout << "code gets here 1" << std::endl;}
                         }
 
                         // calculate M_error_zface
