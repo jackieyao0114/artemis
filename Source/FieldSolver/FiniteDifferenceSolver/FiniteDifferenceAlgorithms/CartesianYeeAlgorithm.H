@@ -319,7 +319,7 @@ struct CartesianYeeAlgorithm {
 
     /**
      * Perform divergence of gradient along z on M field when exchange coupling is on*/
-    // Dirichlet B.C. hacked in
+    // Dirichlet B.C. hacked in at lo-z boundary
    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     static amrex::Real LaplacianDz_Mag (
         amrex::Array4<amrex::Real> const& F,
@@ -332,7 +332,7 @@ struct CartesianYeeAlgorithm {
             if ( Ms_hi_z == 0.) {
                 return 0.5 * inv_dz * inv_dz * (8. * F(i, j, k-1, ncomp) - F(i, j, k-2, ncomp) - 7. * F(i, j, k, ncomp));
             } else if ( Ms_lo_z == 0.){
-                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+                return inv_dz * inv_dz * ( -2. * F(i, j, k+1, ncomp) + F(i, j, k+2, ncomp) + F(i, j, k, ncomp));
             } else {
                 return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
             }
