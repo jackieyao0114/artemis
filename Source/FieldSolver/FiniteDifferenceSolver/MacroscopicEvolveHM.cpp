@@ -488,56 +488,56 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian(
             });
     }
 
-    // // print specific M into output file
-    // for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
+    // print specific M into output file
+    for (MFIter mfi(*Mfield[0], TilingIfNotGPU()); mfi.isValid(); ++mfi){
 
-    //         // Extract field data for this grid/tile
-    //         Array4<Real> const &M_xface = Mfield[0]->array(mfi);         // note M_xface include x,y,z components at |_x faces
-    //         Array4<Real> const &M_yface = Mfield[1]->array(mfi);         // note M_yface include x,y,z components at |_y faces
-    //         Array4<Real> const &M_zface = Mfield[2]->array(mfi);         // note M_zface include x,y,z components at |_z faces
+            // Extract field data for this grid/tile
+            Array4<Real> const &M_xface = Mfield[0]->array(mfi);         // note M_xface include x,y,z components at |_x faces
+            Array4<Real> const &M_yface = Mfield[1]->array(mfi);         // note M_yface include x,y,z components at |_y faces
+            Array4<Real> const &M_zface = Mfield[2]->array(mfi);         // note M_zface include x,y,z components at |_z faces
             
-    //         // Extract stencil coefficients
-    //         amrex::Real const *const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
-    //         int const n_coefs_x = m_stencil_coefs_x.size();
-    //         amrex::Real const *const AMREX_RESTRICT coefs_y = m_stencil_coefs_y.dataPtr();
-    //         int const n_coefs_y = m_stencil_coefs_y.size();
-    //         amrex::Real const *const AMREX_RESTRICT coefs_z = m_stencil_coefs_z.dataPtr();
-    //         int const n_coefs_z = m_stencil_coefs_z.size();
+            // Extract stencil coefficients
+            amrex::Real const *const AMREX_RESTRICT coefs_x = m_stencil_coefs_x.dataPtr();
+            int const n_coefs_x = m_stencil_coefs_x.size();
+            amrex::Real const *const AMREX_RESTRICT coefs_y = m_stencil_coefs_y.dataPtr();
+            int const n_coefs_y = m_stencil_coefs_y.size();
+            amrex::Real const *const AMREX_RESTRICT coefs_z = m_stencil_coefs_z.dataPtr();
+            int const n_coefs_z = m_stencil_coefs_z.size();
 
-    //         // Extract tileboxes for which to loop
-    //         amrex::IntVect Mxnodal = Mfield[0]->ixType().toIntVect();
-    //         amrex::IntVect Mynodal = Mfield[1]->ixType().toIntVect();
-    //         amrex::IntVect Mznodal = Mfield[2]->ixType().toIntVect();
-    //         Box const &tbx = mfi.tilebox(Mxnodal);
-    //         Box const &tby = mfi.tilebox(Mynodal);
-    //         Box const &tbz = mfi.tilebox(Mznodal);
+            // Extract tileboxes for which to loop
+            amrex::IntVect Mxnodal = Mfield[0]->ixType().toIntVect();
+            amrex::IntVect Mynodal = Mfield[1]->ixType().toIntVect();
+            amrex::IntVect Mznodal = Mfield[2]->ixType().toIntVect();
+            Box const &tbx = mfi.tilebox(Mxnodal);
+            Box const &tby = mfi.tilebox(Mynodal);
+            Box const &tbz = mfi.tilebox(Mznodal);
 
-    //         // Loop over the cells and update the fields
-    //         amrex::ParallelFor(tbx, tby, tbz,
+            // Loop over the cells and update the fields
+            amrex::ParallelFor(tbx, tby, tbz,
 
-    //             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
-    //                 if (i == 2 && j == 2 && k == 2){
-    //                     printf ("HACK Mx: %.9e \n", M_xface(i, j, k, 0));
-    //                 }
-    //             },
+                    if (i == 2 && j == 2 && k == 2){
+                        printf ("HACK Mx: %.9e \n", M_xface(i, j, k, 0));
+                    }
+                },
 
-    //             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
-    //                 if (i == 2 && j == 2 && k == 2){
-    //                     printf ("HACK My: %.9e \n", M_yface(i, j, k, 1));
-    //                 }
-    //             },
+                    if (i == 2 && j == 2 && k == 2){
+                        printf ("HACK My: %.9e \n", M_yface(i, j, k, 1));
+                    }
+                },
 
-    //             [=] AMREX_GPU_DEVICE(int i, int j, int k) {
+                [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
-    //                 if (i == 2 && j == 2 && k == 2){
-    //                     printf ("HACK Mz: %.9e \n", M_zface(i, j, k, 2));
-    //                 }
-    //             }
+                    if (i == 2 && j == 2 && k == 2){
+                        printf ("HACK Mz: %.9e \n", M_zface(i, j, k, 2));
+                    }
+                }
 
-    //         );
-    // }
+            );
+    }
 
     amrex::MultiFab& mu_mf = macroscopic_properties->getmu_mf();
     // Update H(new_time) = f(H(old_time), M(new_time), M(old_time), E(old_time))
