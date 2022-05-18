@@ -301,8 +301,38 @@ struct CartesianYeeAlgorithm {
         }
     }
 
-     /**
+//      /**
+//      * Perform divergence of gradient along z on M field when exchange coupling is on*/
+//    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+//     static amrex::Real LaplacianDz_Mag (
+//         amrex::Array4<amrex::Real> const& F,
+//         amrex::Real const * const coefs_z, int const n_coefs_z, amrex::Real const Ms_lo_z, amrex::Real const Ms_hi_z,
+//         int const i, int const j, int const k, int const ncomp=0, int const nodality=0) {
+
+//         amrex::Real const inv_dz = coefs_z[0];
+//         if (nodality == 2){ // z face (normal face) dM/dz = 0
+//            if ( Ms_hi_z == 0.) {
+//                return 0.5 * inv_dz * inv_dz * (8. * F(i, j, k-1, ncomp) - F(i, j, k-2, ncomp) - 7. * F(i, j, k, ncomp));
+//            } else if ( Ms_lo_z == 0.){
+//                return 0.5 * inv_dz * inv_dz * (8. * F(i, j, k+1, ncomp) - F(i, j, k+2, ncomp) - 7. * F(i, j, k, ncomp));
+//            } else {
+//                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+//            }
+
+//         } else { // x or y face
+//            if ( Ms_hi_z == 0.) {
+//                return inv_dz*(0. - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+//            } else if ( Ms_lo_z == 0.){
+//                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - 0.);
+//            } else {
+//                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+//            }
+//         }
+//     }
+
+/**
      * Perform divergence of gradient along z on M field when exchange coupling is on*/
+    // Dirichlet B.C. hacked in at lo-z boundary
    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     static amrex::Real LaplacianDz_Mag (
         amrex::Array4<amrex::Real> const& F,
@@ -310,26 +340,27 @@ struct CartesianYeeAlgorithm {
         int const i, int const j, int const k, int const ncomp=0, int const nodality=0) {
 
         amrex::Real const inv_dz = coefs_z[0];
-        if (nodality == 2){ // z face (normal face) dM/dz = 0
-           if ( Ms_hi_z == 0.) {
-               return 0.5 * inv_dz * inv_dz * (8. * F(i, j, k-1, ncomp) - F(i, j, k-2, ncomp) - 7. * F(i, j, k, ncomp));
-           } else if ( Ms_lo_z == 0.){
-               return 0.5 * inv_dz * inv_dz * (8. * F(i, j, k+1, ncomp) - F(i, j, k+2, ncomp) - 7. * F(i, j, k, ncomp));
-           } else {
-               return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
-           }
 
-        } else { // x or y face
-           if ( Ms_hi_z == 0.) {
-               return inv_dz*(0. - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
-           } else if ( Ms_lo_z == 0.){
-               return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - 0.);
-           } else {
-               return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
-           }
+        if (nodality == 2){ // at z face
+            if ( Ms_hi_z == 0.) {
+                return 0.5 * inv_dz * inv_dz * (8. * F(i, j, k-1, ncomp) - F(i, j, k-2, ncomp) - 7. * F(i, j, k, ncomp));
+            } else if ( Ms_lo_z == 0.){
+                return inv_dz * inv_dz * ( -2. * F(i, j, k+1, ncomp) + F(i, j, k+2, ncomp) + F(i, j, k, ncomp));
+            } else {
+                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+            }
+
+        } else {
+            if ( Ms_hi_z == 0.) {
+                return inv_dz*(0. - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+            } else if ( Ms_lo_z == 0.){
+                return (4./3.) * inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - 2 * inv_dz * (F(i,j,k,ncomp) - (ncomp % 2) * Ms_hi_z));
+            } else {
+                return inv_dz*(UpwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp) - DownwardDz(F, coefs_z, n_coefs_z, i, j, k, ncomp));
+            }
         }
     }
-
+    
      /**
      * Compute the sum to get Laplacian of M field when exchange coupling is on*/
    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
