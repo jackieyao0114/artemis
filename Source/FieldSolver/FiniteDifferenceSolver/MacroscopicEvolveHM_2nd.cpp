@@ -871,7 +871,7 @@ void FiniteDifferenceSolver::MacroscopicEvolveHMCartesian_2nd(
                         if (k == 64){
                             //amrex::Abort("code gets here");
                             M_zface(i, j, k, 0) = 0;
-                            M_zface(i, j, k, 1) = mag_Ms_arrz; // pin M to be in y direction
+                            M_zface(i, j, k, 1) = mag_Ms_zface_arr(i,j,k); // pin M to be in y direction
                             M_zface(i, j, k, 2) = 0;
                         }
 
