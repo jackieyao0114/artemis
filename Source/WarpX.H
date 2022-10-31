@@ -38,6 +38,7 @@
 #include "Utils/IntervalsParser.H"
 #include "Utils/WarnManager_fwd.H"
 #include "Utils/WarpXAlgorithmSelection.H"
+#include "FieldSolver/London/London.H"
 
 #include <AMReX.H>
 #include <AMReX_AmrCore.H>
@@ -147,6 +148,7 @@ public:
 
     MultiParticleContainer& GetPartContainer () { return *mypc; }
     MacroscopicProperties& GetMacroscopicProperties () { return *m_macroscopic_properties; }
+    London& getLondon () { return *m_london; }
 
     ParticleBoundaryBuffer& GetParticleBoundaryBuffer () { return *m_particle_boundary_buffer; }
 
@@ -354,6 +356,7 @@ public:
      *  (0 to 3 correspond to Absorbing, Open, Reflecting, Periodic)
      */
     static amrex::Vector<ParticleBoundaryType> particle_boundary_hi;
+    static int yee_coupled_solver_algo;
 
 
 #ifdef WARPX_MAG_LLG
@@ -555,6 +558,7 @@ public:
 #endif
     amrex::MultiFab * get_pointer_Efield_fp  (int lev, int direction) const { return Efield_fp[lev][direction].get(); }
     amrex::MultiFab * get_pointer_Bfield_fp  (int lev, int direction) const { return Bfield_fp[lev][direction].get(); }
+    amrex::MultiFab * get_pointer_Bfield_sc_fp  (int lev, int direction) const { return Bfield_sc_fp[lev][direction].get(); }
 
 #ifdef WARPX_MAG_LLG
     amrex::MultiFab * get_pointer_Hfield_fp  (int lev, int direction) const { return Hfield_fp[lev][direction].get();}
@@ -606,6 +610,7 @@ public:
     const amrex::MultiFab& getcurrent_fp (int lev, int direction) {return *current_fp[lev][direction];}
     const amrex::MultiFab& getEfield_fp  (int lev, int direction) {return *Efield_fp[lev][direction];}
     const amrex::MultiFab& getBfield_fp  (int lev, int direction) {return *Bfield_fp[lev][direction];}
+    const amrex::MultiFab& getBfield_sc_fp  (int lev, int direction) {return *Bfield_sc_fp[lev][direction];}
 #ifdef WARPX_MAG_LLG
     const amrex::MultiFab& getHfield_fp  (int lev, int direction) {return *Hfield_fp[lev][direction];}
     const amrex::MultiFab& getMfield_fp  (int lev, int direction) {return *Mfield_fp[lev][direction];}
@@ -622,6 +627,7 @@ public:
     const amrex::MultiFab& getBfield_avg_cp (int lev, int direction) {return *Bfield_avg_cp[lev][direction];}
 
     bool DoPML () const {return do_pml;}
+
 #if (defined WARPX_DIM_RZ) && (defined WARPX_USE_PSATD)
     const PML_RZ* getPMLRZ() {return pml_rz[0].get();}
 #endif
@@ -718,6 +724,9 @@ public:
     void EvolveE (int lev, PatchType patch_type, amrex::Real dt);
     void EvolveF (int lev, PatchType patch_type, amrex::Real dt, DtType dt_type);
     void EvolveG (int lev, PatchType patch_type, amrex::Real dt, DtType dt_type);
+    void EvolveBLondon (         amrex::Real dt, DtType dt_type);
+    void EvolveBLondon (int lev, amrex::Real dt, DtType dt_type);
+    void EvolveBLondon (int lev, PatchType patch_type, amrex::Real dt, DtType dt_type);
 
     void MacroscopicEvolveE (         amrex::Real dt);
     void MacroscopicEvolveE (int lev, amrex::Real dt);
@@ -892,6 +901,9 @@ public:
     void FillBoundaryF   (int lev, amrex::IntVect ng);
     void FillBoundaryG   (int lev, amrex::IntVect ng);
     void FillBoundaryAux (int lev, amrex::IntVect ng);
+
+    void FillBoundaryJ (amrex::IntVect ng);
+    void FillBoundaryJ (const int lev, amrex::IntVect ng);
 
     void SyncCurrent ();
     void SyncRho ();
@@ -1116,6 +1128,8 @@ public:
          amrex::ParserExecutor<3> const& yflag_parser,
          amrex::ParserExecutor<3> const& zflag_parser, const int lev,
          DtType a_dt_type );
+    /** Parse field excitation functions and flags*/
+    void ReadExcitationParser ();
 
 #ifdef WARPX_MAG_LLG
     void AverageParsedMtoFaces(amrex::MultiFab& Mx_cc,
@@ -1194,8 +1208,7 @@ protected:
     //! DistributionMapping and fill with interpolated coarse level
     //! data.  Called by AmrCore::regrid.
     virtual void MakeNewLevelFromCoarse (int /*lev*/, amrex::Real /*time*/, const amrex::BoxArray& /*ba*/,
-                                         const amrex::DistributionMapping& /*dm*/) final
-        { amrex::Abort("MakeNewLevelFromCoarse: To be implemented"); }
+                                         const amrex::DistributionMapping& /*dm*/) final;
 
     //! Remake an existing level using provided BoxArray and
     //! DistributionMapping and fill with existing fine and coarse
@@ -1232,6 +1245,7 @@ private:
 
     void FillBoundaryB_avg (int lev, PatchType patch_type, amrex::IntVect ng);
     void FillBoundaryE_avg (int lev, PatchType patch_type, amrex::IntVect ng);
+    void FillBoundaryJ (const int lev, const PatchType patch_type, const amrex::IntVect ng);
 
     /**
      * \brief Synchronize the nodal points of a given vector MultiFab (all mesh refinement levels)
@@ -1456,6 +1470,8 @@ private:
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Efield_avg_fp;
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_avg_fp;
 
+    amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > Bfield_sc_fp;
+
     //! EB: Lengths of the mesh edges
     amrex::Vector<std::array< std::unique_ptr<amrex::MultiFab>, 3 > > m_edge_lengths;
     //! EB: Areas of the mesh faces
@@ -1553,6 +1569,7 @@ private:
 #if (defined WARPX_DIM_RZ) && (defined WARPX_USE_PSATD)
     amrex::Vector<std::unique_ptr<PML_RZ> > pml_rz;
 #endif
+    amrex::Real v_particle_pml;
 
     amrex::Real moving_window_x = std::numeric_limits<amrex::Real>::max();
     amrex::Real current_injection_position = 0;
@@ -1566,6 +1583,9 @@ private:
 
     // Macroscopic properties
     std::unique_ptr<MacroscopicProperties> m_macroscopic_properties;
+    // London solver
+    std::unique_ptr<London> m_london;
+
 
 #ifdef WARPX_MAG_LLG
     // time advancement scheme of M field

@@ -345,6 +345,9 @@ Additional PML parameters
     Whether to damp current in PML. Can only be used if particles are propagated in PML,
     i.e. if `warpx.pml_has_particles = 1`.
 
+* ``warpx.v_particle_pml`` (`float`; default: 1)
+    When ``warpx.do_pml_j_damping = 1``, the assumed velocity of the particles to be absorbed in the PML, in units of the speed of light `c`.
+
 * ``warpx.do_pml_dive_cleaning`` (`bool`; default: 1)
     Whether to use divergence cleaning for E in the PML region.
     The value must match ``warpx.do_pml_divb_cleaning`` (either both false or both true).
@@ -1782,6 +1785,16 @@ Numerics and algorithms
 
     If ``algo.em_solver_medium`` is not specified, ``vacuum`` is the default.
 
+* ``algo.yee_coupled_solver`` (`string` optional)
+    If Maxwell is coupled with another solver.
+    Options are :
+
+    - ``MaxwellLondon``: Couple London with Maxwell yee-scheme. If this option is selected, then
+                         ``london.penetration_depth`` must be specified and
+                          ``london.superconductor_function(x,y,z)`` must be provided to specify the superconducting region with an analytical function.
+    - ``None``: pure FDTD with yee-scheme
+    If ``algo.yee_coupled_solver`` is not specified, ``None`` is the default
+
 * ``algo.macroscopic_sigma_method`` (`string`, optional)
     The algorithm for updating electric field when ``algo.em_solver_medium`` is macroscopic. Available options are:
 
@@ -2191,7 +2204,7 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
 
 * ``<diag_name>.fields_to_plot`` (list of `strings`, optional)
     Fields written to output.
-    Possible scalar fields: ``part_per_cell`` ``rho`` ``phi`` ``F`` ``part_per_grid`` ``divE`` ``divB`` ``sigma`` ``epsilon`` ``mu`` and ``rho_<species_name>``, where ``<species_name>`` must match the name of one of the available particle species. Note that ``phi`` will only be written out when do_electrostatic==labframe. Also ``sigma`` ``epsilon``, and ``mu`` will be written when `algo.em_solver_medium = macroscopic`.
+    Possible scalar fields: ``part_per_cell`` ``rho`` ``phi`` ``F`` ``part_per_grid`` ``divE`` ``divB`` ``sigma`` ``epsilon`` ``mu`` and ``rho_<species_name>``, where ``<species_name>`` must match the name of one of the available particle species. Note that ``phi`` will only be written out when do_electrostatic==labframe. Also ``sigma`` ``epsilon``, and ``mu`` will be written when `algo.em_solver_medium = macroscopic`. Also, note that for ``<diag_name>.diag_type = BackTransformed``, the only scalar field currently supported is ``rho``.
     Possible vector field components in Cartesian geometry: ``Ex`` ``Ey`` ``Ez`` ``Bx`` ``By`` ``Bz`` ``jx`` ``jy`` ``jz``.
     If compiled with ``USE_LLG=TRUE``, additional vector fields components include
     ``Hx`` ``Hy`` ``Hz``
@@ -2203,6 +2216,9 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
     ``mag_alpha_xface``    ``mag_alpha_yface``    ``mag_alpha_zface``
     ``mag_exchange_xface`` ``mag_exchange_yface`` ``mag_exchange_zface``
     ``mag_anisotropy_xface`` ``mag_anisotropy_yface`` ``mag_anisotropy_zface``
+    For superconducting physics we also include
+    ``superconductor``
+    ``Bx_sc`` ``By_sc`` ``Bz_sc``
 
     Possible vector field components in RZ geometry: ``Er`` ``Et`` ``Ez`` ``Br`` ``Bt`` ``Bz`` ``jr`` ``jt`` ``jz``.
     Default is ``<diag_name>.fields_to_plot = Ex Ey Ez Bx By Bz jx jy jz``,
@@ -2220,6 +2236,7 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
    Note that these averages do not respect the particle shape factor, and instead use nearest-grid point interpolation.
    Default is none.
    Parser functions for these field names are specified by ``<diag_name>.particle_fields.<field_name>(x,y,z,ux,uy,uz)``.
+   Also, note that this option is only available for ``<diag_name>.diag_type = Full``
 
 * ``<diag_name>.particle_fields_species`` (list of `strings`, optional)
          Species for which to calculate ``particle_fields_to_plot``.
@@ -2337,7 +2354,7 @@ In-situ capabilities can be used by turning on Sensei or Ascent (provided they a
 BackTransformed Diagnostics (with support for Plotfile/openPMD output)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``BackTransformed`` diag type are used when running a simulation in a boosted frame, to reconstruct output data to the lab frame. This option can be set using ``<diag_name>.diag_type = BackTransformed``. Additional options for this diagnostic include:
+``BackTransformed`` diag type are used when running a simulation in a boosted frame, to reconstruct output data to the lab frame. This option can be set using ``<diag_name>.diag_type = BackTransformed``. Note that this diagnostic is not currently supported for RZ.  Additional options for this diagnostic include:
 
 * ``<diag_name>.num_snapshots_lab`` (`integer`)
     Only used when ``<diag_name>.diag_type`` is ``BackTransformed``.

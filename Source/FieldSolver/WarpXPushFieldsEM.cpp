@@ -487,7 +487,8 @@ void
 WarpX::PushPSATD ()
 {
 #ifndef WARPX_USE_PSATD
-    amrex::Abort("PushFieldsEM: PSATD solver selected but not built");
+    amrex::Abort(Utils::TextMsg::Err(
+        "PushFieldsEM: PSATD solver selected but not built"));
 #else
 
     PSATDForwardTransformEB(Efield_fp, Bfield_fp, Efield_cp, Bfield_cp);
@@ -549,6 +550,45 @@ WarpX::PushPSATD ()
     }
 #endif
 }
+
+void
+WarpX::EvolveBLondon (amrex::Real a_dt, DtType a_dt_type)
+{
+    for (int lev = 0; lev <= finest_level; ++lev) {
+        EvolveBLondon(lev, a_dt, a_dt_type);
+    }
+}
+
+void
+WarpX::EvolveBLondon (int lev, amrex::Real a_dt, DtType a_dt_type)
+{
+    WARPX_PROFILE("WarpX::EvolveBLondon()");
+    EvolveBLondon(lev, PatchType::fine, a_dt, a_dt_type);
+    if (lev > 0)
+    {
+        EvolveBLondon(lev, PatchType::coarse, a_dt, a_dt_type);
+    }
+}
+
+void
+WarpX::EvolveBLondon (int lev, PatchType patch_type, amrex::Real a_dt, DtType a_dt_type)
+{
+    amrex::ignore_unused(a_dt_type);
+    // Evolve B field in regular cells
+    if (patch_type == PatchType::fine) {
+        m_fdtd_solver_fp[lev]->EvolveBLondon(Bfield_sc_fp[lev], current_fp[lev], G_fp[lev],
+                                       m_face_areas[lev], m_area_mod[lev], ECTRhofield[lev], Venl[lev],
+                                       m_flag_info_face[lev], m_borrowing[lev], lev, a_dt,
+                                       m_london->m_penetration_depth);
+    } else {
+        m_fdtd_solver_cp[lev]->EvolveBLondon(Bfield_sc_fp[lev], current_cp[lev], G_cp[lev],
+                                       m_face_areas[lev], m_area_mod[lev], ECTRhofield[lev], Venl[lev],
+                                       m_flag_info_face[lev], m_borrowing[lev], lev, a_dt,
+                                       m_london->m_penetration_depth);
+    }
+
+}
+
 
 void
 WarpX::EvolveB (amrex::Real a_dt, DtType a_dt_type)
@@ -788,30 +828,31 @@ void
 WarpX::MacroscopicEvolveE (int lev, amrex::Real a_dt) {
 
     WARPX_PROFILE("WarpX::MacroscopicEvolveE()");
+
+    WARPX_ALWAYS_ASSERT_WITH_MESSAGE(
+        lev == 0,
+        "Macroscopic EvolveE is not implemented for lev>0, yet."
+    );
+
     MacroscopicEvolveE(lev, PatchType::fine, a_dt);
-    if (lev > 0) {
-        amrex::Abort("Macroscopic EvolveE is not implemented for lev>0, yet.");
-    }
 }
 
 void
 WarpX::MacroscopicEvolveE (int lev, PatchType patch_type, amrex::Real a_dt) {
 
     // Evolve E field in regular cells
-    if (patch_type == PatchType::fine) {
-        m_fdtd_solver_fp[lev]->MacroscopicEvolveE( Efield_fp[lev],
+    WARPX_ALWAYS_ASSERT_WITH_MESSAGE(
+        patch_type == PatchType::fine,
+        "Macroscopic EvolveE is not implemented for lev>0, yet."
+    );
+    m_fdtd_solver_fp[lev]->MacroscopicEvolveE( Efield_fp[lev],
 #ifndef WARPX_MAG_LLG
-                                                   Bfield_fp[lev],
+                                               Bfield_fp[lev],
 #else
-                                                   Hfield_fp[lev],
+                                               Hfield_fp[lev],
 #endif
-                                                   current_fp[lev], m_edge_lengths[lev], a_dt,
-                                                   m_macroscopic_properties);
-    }
-    else {
-        amrex::Abort("Macroscopic EvolveE is not implemented for lev > 0, yet.");
-    }
-
+                                               current_fp[lev], m_edge_lengths[lev], a_dt,
+                                               m_macroscopic_properties);
     // Evolve E field in PML cells
     if (do_pml && pml[lev]->ok()) {
         if (patch_type == PatchType::fine) {
