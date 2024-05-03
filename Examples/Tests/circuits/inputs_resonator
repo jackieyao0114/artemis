@@ -121,7 +121,7 @@ diagnostics.diags_names = plt
 plt.intervals = 100
 plt.fields_to_plot = Ex Ey Ez Bx By Bz sigma
 plt.diag_type = Full
-plt.plot_raw_fields = 1
+plt.plot_raw_fields = 0
 
 # output diagnostics
 warpx.reduced_diags_names = Eobs1
