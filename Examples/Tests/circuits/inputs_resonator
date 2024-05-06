@@ -119,7 +119,7 @@ warpx.Bz_excitation_grid_function(x,y,z,t) = "0."
 # plotfile diagnostics
 diagnostics.diags_names = plt
 plt.intervals = 100
-plt.fields_to_plot = Ex Ey Ez Bx By Bz sigma
+plt.fields_to_plot = Ex Ey Ez Bx By Bz
 plt.diag_type = Full
 plt.plot_raw_fields = 0
 
