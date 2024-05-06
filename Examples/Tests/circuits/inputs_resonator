@@ -129,5 +129,4 @@ Eobs1.type = RawEFieldReduction
 Eobs1.reduction_type = integral
 Eobs1.integration_type = volume
 Eobs1.intervals = 1
-Eobs1.reduced_function(x,y,z) = (x>Lcavity/4) * (x<Lcavity/4+dx/2+smalldx) * (y>Lcavity/4) * (y<Lcavity/4+dy/2+smalldy) * (z>Lcavity/4) * (z<Lcavity/4+dz/2+smalldz)
-
+Eobs1.reduced_function(x,y,z) = (x>Lcavity/4-smalldx) * (x<Lcavity/4+dx/2+smalldx) * (y>Lcavity/4-smalldy) * (y<Lcavity/4+dy/2+smalldy) * (z>Lcavity/4-smalldz) * (z<Lcavity/4+dz/2+smalldz)
