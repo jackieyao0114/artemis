@@ -9,11 +9,12 @@ ARTEMIS (Adaptive mesh Refinement Time-domain ElectrodynaMIcs Solver) is a high-
 ## Build
 Make sure that the AMReX and Artemis are cloned in the same location in their filesystem. Navigate to the Exec folder of Artemis and execute
 ```make -j 4```. <br />
-You can turn on and off the LLG equation by specifying ```USE_LLG``` during compilation. The following command compiles Artemis without LLG
-```make -j 4 USE_LLG=FALSE```
+You can turn on and off the LLG equation by specifying ```USE_LLG``` during compilation. <br />
+The following command compiles Artemis without LLG
+```make -j 4 USE_LLG=FALSE``` <br />
 The following command compiles Artemis with LLG
-```make -j 4 USE_LLG=TRUE```
-The default value of ```USE_LLG``` is ```TRUE```
+```make -j 4 USE_LLG=TRUE``` <br />
+The default value of ```USE_LLG``` is ```TRUE```.
 
 # Running Artemis
 Example input scripts are located in `Examples` directory. 
