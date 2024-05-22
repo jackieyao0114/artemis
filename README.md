@@ -40,13 +40,17 @@ Refer to the following link for several visualization tools that can be used for
 [Visualization](https://amrex-codes.github.io/amrex/docs_html/Visualization_Chapter.html)
 
 ### Data Analysis in Python using yt 
-You can extract the data in numpy array format using yt (you can refer to this for installation and usage of [yt](https://yt-project.org/). After you have installed yt, you can do something as follows, for example, to get variable 'Pz' (z-component of polarization)
+You can extract the data in numpy array format using yt (you can refer to this for installation and usage of [yt](https://yt-project.org/). After you have installed yt, you can do something as follows, for example, to get variable 'Ex' (x-component of electric field)
 ```
 import yt
 ds = yt.load('./plt00001000/') # for data at time step 1000
 ad0 = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
-P_array = ad0['Pz'].to_ndarray()
+E_array = ad0['Ex'].to_ndarray()
 ```
 # Publications
-1. P. Kumar, M. Hoffmann, A. Nonaka, S. Salahuddin, and Z. Yao, 3D ferroelectric phase field simulations of polycrystalline multi-phase hafnia and zirconia based ultra-thin films, submitted for publication. [arxiv](https://arxiv.org/abs/2402.05331)
-2. P. Kumar, A. Nonaka, R. Jambunathan, G. Pahwa, S. Salahuddin, and Z. Yao, Artemis: A GPU-accelerated, 3D Phase-Field Simulation Framework for Modeling Ferroelectric Devices, Computer Physics Communications, 108757, 2023. [link](https://www.sciencedirect.com/science/article/pii/S0010465523001029)
+1. Z. Yao, R. Jambunathan, Y. Zeng and A. Nonaka, A massively parallel time-domain coupled electrodynamics–micromagnetics solver. The International Journal of High Performance Computing Applications. 2022;36(2):167-181. doi:10.1177/10943420211057906
+[link](https://journals.sagepub.com/doi/full/10.1177/10943420211057906)
+2. S. S. Sawant, Z. Yao, R. Jambunathan and A. Nonaka, Characterization of transmission lines in microelectronic circuits Using the ARTEMIS solver, IEEE Journal on Multiscale and Multiphysics Computational Techniques, vol. 8, pp. 31-39, 2023, doi: 10.1109/JMMCT.2022.3228281
+[link](https://ieeexplore.ieee.org/abstract/document/9980353)
+3. R. Jambunathan, Z. Yao, R. Lombardini, A. Rodriguez, and A. Nonaka, Two-fluid physical modeling of superconducting resonators in the ARTEMIS framework, Computer Physics Communications, 291, p.108836. doi:10.1016/j.cpc.2023.108836
+[link](https://www.sciencedirect.com/science/article/pii/S0010465523001819?casa_token=rWpwl8cmtUYAAAAA:rZTndzf_pqx0lo9jtTRzLLxh0tIf_AD0zHcRRJ_ciwMw-n-X2doK5RprMS4wyrO9TEw5oDZAB7Kr)
