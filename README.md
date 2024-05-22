@@ -19,7 +19,7 @@ The default value of ```USE_LLG``` is ```TRUE```.
 # Running Artemis
 Example input scripts are located in `Examples` directory. 
 ## Simple Testcase
-You can run the following to simulate a MFIM heterostructure with a 5 nm HZO as the ferroelectric layer and 4 nm alumina as the dielectric layer under zero applied voltage:
+You can run the following to simulate :
 ## For MPI+OMP build
 ```mpirun -n 4 ./main3d.gnu.MPI.OMP.ex Examples/inputs_mfim_Noeb```
 ## For MPI+CUDA build
