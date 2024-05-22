@@ -19,11 +19,12 @@ The default value of ```USE_LLG``` is ```TRUE```.
 # Running Artemis
 Example input scripts are located in `Examples` directory. 
 ## Simple Testcase
-You can run the following to simulate :
+You can run the following to simulate an air-filled X-band rectangle waveguide:
 ## For MPI+OMP build
-```mpirun -n 4 ./main3d.gnu.MPI.OMP.ex Examples/inputs_mfim_Noeb```
+```make -j 4 USE_LLG=FALSE``` <br />
+```mpirun -n 4 ./main3d.gnu.TPROF.MTMPI.OMP.GPUCLOCK.ex Examples/Waveguide/inputs_3d_empty_X_band```
 ## For MPI+CUDA build
-```mpirun -n 4 ./main3d.gnu.MPI.CUDA.ex Examples/inputs_mfim_Noeb```
+```mpirun -n 4 ./main3d.gnu.TPROF.MTMPI.OMP.GPUCLOCK.ex Examples/Waveguide/inputs_3d_empty_X_band```
 # Visualization and Data Analysis
 Refer to the following link for several visualization tools that can be used for AMReX plotfiles. 
 
