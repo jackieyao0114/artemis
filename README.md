@@ -18,13 +18,22 @@ The default value of ```USE_LLG``` is ```TRUE```.
 
 # Running Artemis
 Example input scripts are located in `Examples` directory. 
-## Simple Testcase
+## Simple Testcase without LLG
 You can run the following to simulate an air-filled X-band rectangle waveguide:
 ## For MPI+OMP build
 ```make -j 4 USE_LLG=FALSE``` <br />
 ```mpirun -n 4 ./main3d.gnu.TPROF.MTMPI.OMP.GPUCLOCK.ex Examples/Waveguide/inputs_3d_empty_X_band```
 ## For MPI+CUDA build
-```mpirun -n 4 ./main3d.gnu.TPROF.MTMPI.OMP.GPUCLOCK.ex Examples/Waveguide/inputs_3d_empty_X_band```
+```make -j 4 USE_LLG=FALSE USE_GPU=TRUE``` <br />
+```mpirun -n 4 ./main3d.gnu.TPROF.MTMPI.CUDA.GPUCLOCK.ex Examples/Waveguide/inputs_3d_empty_X_band``` 
+## Simple Testcase with LLG
+You can run the following to simulate an X-band magnetically tunable filter:
+## For MPI+OMP build
+```make -j 4 USE_LLG=TRUE``` <br />
+```mpirun -n 8 ./main3d.gnu.TPROF.MTMPI.OMP.GPUCLOCK.ex Examples/Waveguide/inputs_3d_LLG_filter```
+## For MPI+CUDA build
+```make -j 4 USE_LLG=TRUE USE_GPU=TRUE``` <br />
+```mpirun -n 8 ./main3d.gnu.TPROF.MTMPI.CUDA.GPUCLOCK.ex Examples/Waveguide/inputs_3d_LLG_filter```
 # Visualization and Data Analysis
 Refer to the following link for several visualization tools that can be used for AMReX plotfiles. 
 
