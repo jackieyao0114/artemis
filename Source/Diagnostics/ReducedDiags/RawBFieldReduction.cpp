@@ -7,7 +7,8 @@
 
 #include "RawBFieldReduction.H"
 
-#include "Utils/IntervalsParser.H"
+#include "Utils/Parser/IntervalsParser.H"
+#include "Utils/Parser/ParserUtils.H"
 #include "Utils/WarpXAlgorithmSelection.H"
 #include "Utils/WarpXUtil.H"
 
@@ -48,8 +49,8 @@ RawBFieldReduction::RawBFieldReduction (std::string rd_name)
 
     // read reduced function with parser
     std::string parser_string = "";
-    Store_parserString(pp_rd_name,"reduced_function(x,y,z)", parser_string);
-    m_parser = std::make_unique<amrex::Parser>(makeParser(parser_string,{"x","y","z"}));
+    utils::parser::Store_parserString(pp_rd_name,"reduced_function(x,y,z)", parser_string);
+    m_parser = std::make_unique<amrex::Parser>(utils::parser::makeParser(parser_string,{"x","y","z"}));
 
     // Replace all newlines and possible following whitespaces with a single whitespace. This
     // should avoid weird formatting when the string is written in the header of the output file.
@@ -69,7 +70,14 @@ RawBFieldReduction::RawBFieldReduction (std::string rd_name)
         if (surface_normal_string == "x" || surface_normal_string == "X") {
             m_surface_normal[0] = 1;
         }
-#if (AMREX_SPACEDIM==2)
+#if (AMREX_SPACEDIM==1)
+        else if (surface_normal_string == "y" || surface_normal_string == "Y") {
+            amrex::Abort("In 1-D, we compute over an X line. So the only direction for the surface integral is X.");
+        }
+        else if (surface_normal_string == "z" || surface_normal_string == "Z") {
+            amrex::Abort("In 1-D, we compute over an X line. So the only direction for the surface integral is X.");
+        }
+#elif (AMREX_SPACEDIM==2)
         else if (surface_normal_string == "y" || surface_normal_string == "Y") {
             amrex::Abort("In 2-D, we compute over an X-Z plane. So the plane of interest for the surface integral is Z.");
         }

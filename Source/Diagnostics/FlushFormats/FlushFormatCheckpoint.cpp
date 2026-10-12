@@ -35,7 +35,9 @@ FlushFormatCheckpoint::WriteToFile (
         const std::string prefix, int file_min_digits,
         bool /*plot_raw_fields*/,
         bool /*plot_raw_fields_guards*/,
+        const bool /*use_pinned_pc*/,
         bool /*isBTD*/, int /*snapshotID*/,
+        int /*bufferID*/, int /*numBuffers*/,
         const amrex::Geometry& /*full_BTD_snapshot*/,
         bool /*isLastBTDFlush*/, const amrex::Vector<int>& /* totalParticlesFlushedAlready*/) const
 {
@@ -111,7 +113,9 @@ FlushFormatCheckpoint::WriteToFile (
                          amrex::MultiFabFileFullPrefix(lev, checkpointname, default_level_prefix, "Bz_avg_fp"));
         }
 
-        if (warpx.getis_synchronized()) {
+        if (warpx.getis_synchronized()
+            || WarpX::yee_coupled_solver_algo == CoupledYeeSolver::MaxwellLondon
+            || warpx.use_lumped_inductor == 1) {
             // Need to save j if synchronized because after restart we need j to evolve E by dt/2.
             VisMF::Write(warpx.getcurrent_fp(lev, 0),
                          amrex::MultiFabFileFullPrefix(lev, checkpointname, default_level_prefix, "jx_fp"));
@@ -174,7 +178,9 @@ FlushFormatCheckpoint::WriteToFile (
                              amrex::MultiFabFileFullPrefix(lev, checkpointname, default_level_prefix, "Bz_avg_cp"));
             }
 
-            if (warpx.getis_synchronized()) {
+            if (warpx.getis_synchronized()
+                || WarpX::yee_coupled_solver_algo == CoupledYeeSolver::MaxwellLondon
+                || warpx.use_lumped_inductor == 1) {
                 // Need to save j if synchronized because after restart we need j to evolve E by dt/2.
                 VisMF::Write(warpx.getcurrent_cp(lev, 0),
                              amrex::MultiFabFileFullPrefix(lev, checkpointname, default_level_prefix, "jx_cp"));
@@ -212,8 +218,8 @@ FlushFormatCheckpoint::CheckpointParticles (
     const std::string& dir,
     const amrex::Vector<ParticleDiag>& particle_diags) const
 {
-    for (unsigned i = 0, n = particle_diags.size(); i < n; ++i) {
-        WarpXParticleContainer* pc = particle_diags[i].getParticleContainer();
+    for (auto& part_diag: particle_diags) {
+        WarpXParticleContainer* pc = part_diag.getParticleContainer();
 
         Vector<std::string> real_names;
         Vector<std::string> int_names;
@@ -240,7 +246,7 @@ FlushFormatCheckpoint::CheckpointParticles (
         auto runtime_inames = pc->getParticleRuntimeiComps();
         for (auto const& x : runtime_inames) { int_names[x.second+0] = x.first; }
 
-        pc->Checkpoint(dir, particle_diags[i].getSpeciesName(), true,
+        pc->Checkpoint(dir, part_diag.getSpeciesName(), true,
                        real_names, int_names);
     }
 }
@@ -266,9 +272,10 @@ FlushFormatCheckpoint::WriteDMaps (const std::string& dir, int nlev) const
 
             DMFile.flush();
             DMFile.close();
-            if (!DMFile.good()) {
-                amrex::Abort("FlushFormatCheckpoint::WriteDMaps: problem writing DMFile");
-            }
+            WARPX_ALWAYS_ASSERT_WITH_MESSAGE(
+                DMFile.good(),
+                "FlushFormatCheckpoint::WriteDMaps: problem writing DMFile"
+            );
         }
     }
 }

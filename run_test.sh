@@ -62,6 +62,7 @@ rm -rf py-venv
 python3 -m venv py-venv
 source py-venv/bin/activate
 python3 -m pip install --upgrade pip setuptools wheel
+python3 -m pip install --upgrade cmake
 # setuptools/mp4py work-around, see
 #   https://github.com/mpi4py/mpi4py/pull/159
 #   https://github.com/mpi4py/mpi4py/issues/157#issuecomment-1001022274
@@ -70,9 +71,15 @@ python3 -m pip install --upgrade -r warpx/Regression/requirements.txt
 
 # Clone AMReX and warpx-data
 git clone https://github.com/AMReX-Codes/amrex.git
-cd amrex && git checkout --detach 329f81b889a6ece31c67b1b70f207d6c6b2463b6 && cd -
+cd amrex && git checkout --detach 9d2f762f4897b5f585544baf87a19edd0f0c9560 && cd -
 # warpx-data contains various required data sets
 git clone --depth 1 https://github.com/ECP-WarpX/warpx-data.git
+# openPMD-example-datasets contains various required data sets
+mkdir -p openPMD-example-datasets
+cd openPMD-example-datasets
+curl -sOL https://github.com/openPMD/openPMD-example-datasets/raw/4ba1d257c5b4897c0a3cd57742bb0987343a902e/example-femm-thetaMode.h5
+curl -sOL https://github.com/openPMD/openPMD-example-datasets/raw/4ba1d257c5b4897c0a3cd57742bb0987343a902e/example-femm-3d.h5
+cd -
 
 # Clone the AMReX regression test utility
 git clone https://github.com/AMReX-Codes/regression_testing.git

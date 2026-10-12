@@ -7,6 +7,7 @@
 #include "MultiReducedDiags.H"
 
 #include "BeamRelevant.H"
+#include "ChargeOnEB.H"
 #include "FieldEnergy.H"
 #include "FieldMaximum.H"
 #include "FieldProbe.H"
@@ -22,7 +23,8 @@
 #include "RhoMaximum.H"
 #include "RawEFieldReduction.H"
 #include "RawBFieldReduction.H"
-#include "Utils/IntervalsParser.H"
+#include "Utils/Parser/IntervalsParser.H"
+#include "Utils/TextMsg.H"
 #include "Utils/WarpXProfilerWrapper.H"
 
 #include <AMReX.H>
@@ -64,9 +66,10 @@ MultiReducedDiags::MultiReducedDiags ()
             {"ParticleHistogram",     [](CS s){return std::make_unique<ParticleHistogram>(s);}},
             {"ParticleNumber",        [](CS s){return std::make_unique<ParticleNumber>(s);}},
             {"ParticleExtrema",       [](CS s){return std::make_unique<ParticleExtrema>(s);}},
+            {"ChargeOnEB",            [](CS s){return std::make_unique<ChargeOnEB>(s);}},
             {"RawEFieldReduction",    [](CS s){return std::make_unique<RawEFieldReduction>(s);}},
             {"RawBFieldReduction",    [](CS s){return std::make_unique<RawBFieldReduction>(s);}}
-        };
+    };
     // loop over all reduced diags and fill m_multi_rd with requested reduced diags
     std::transform(m_rd_names.begin(), m_rd_names.end(), std::back_inserter(m_multi_rd),
         [&](const auto& rd_name){
@@ -76,8 +79,10 @@ MultiReducedDiags::MultiReducedDiags ()
             std::string rd_type;
             pp_rd_name.get("type", rd_type);
 
-            if(reduced_diags_dictionary.count(rd_type) == 0)
-                Abort(rd_type + " is not a valid type for reduced diagnostic " + rd_name);
+            WARPX_ALWAYS_ASSERT_WITH_MESSAGE(
+                reduced_diags_dictionary.count(rd_type) != 0,
+                rd_type + " is not a valid type for reduced diagnostic " + rd_name
+            );
 
             return reduced_diags_dictionary.at(rd_type)(rd_name);
         });

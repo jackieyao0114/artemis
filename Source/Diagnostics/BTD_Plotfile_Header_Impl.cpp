@@ -37,7 +37,9 @@ BTDPlotfileHeaderImpl::ReadHeaderData ()
     iss.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
     iss.open(m_Header_path.c_str(), std::ios::in);
-    if(!iss) amrex::Abort("Failed to load BTD MultiFabHeader");
+    WARPX_ALWAYS_ASSERT_WITH_MESSAGE(
+        iss,"Failed to load BTD MultiFabHeader"
+    );
 
     iss.seekg(0, std::ios::end);
     fileLength = static_cast<std::streamoff>(iss.tellg());
@@ -109,7 +111,6 @@ void
 BTDPlotfileHeaderImpl::WriteHeader ()
 {
     if ( amrex::FileExists(m_Header_path) ) {
-        amrex::Print() << Utils::TextMsg::Info(" removing this file : " + m_Header_path);
         amrex::FileSystem::Remove(m_Header_path);
     }
     std::ofstream HeaderFile;
@@ -125,8 +126,8 @@ BTDPlotfileHeaderImpl::WriteHeader ()
     // number of components
     HeaderFile << m_varnames.size() << '\n';
     // write the component string
-    for (int icomp = 0; icomp < m_varnames.size(); ++icomp ) {
-        HeaderFile << m_varnames[icomp] << '\n';
+    for (const auto& vname : m_varnames) {
+        HeaderFile << vname << '\n';
     }
     // space dim
     HeaderFile << m_spacedim << '\n';
@@ -191,7 +192,9 @@ BTDMultiFabHeaderImpl::ReadMultiFabHeader ()
     iss.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
     iss.open(m_Header_path.c_str(), std::ios::in);
-    if(!iss) amrex::Abort("Failed to load BTD MultiFabHeader");
+    WARPX_ALWAYS_ASSERT_WITH_MESSAGE(
+        iss, "Failed to load BTD MultiFabHeader"
+    );
 
     iss.seekg(0, std::ios::end);
     fileLength = static_cast<std::streamoff>(iss.tellg());
@@ -258,7 +261,6 @@ void
 BTDMultiFabHeaderImpl::WriteMultiFabHeader ()
 {
     if ( amrex::FileExists(m_Header_path) ) {
-        amrex::Print() << Utils::TextMsg::Info(" removing this file : " + m_Header_path);
         amrex::FileSystem::Remove(m_Header_path);
     }
     std::ofstream FabHeaderFile;
@@ -381,12 +383,12 @@ BTDSpeciesHeaderImpl::ReadHeader ()
     is >> m_spacedim;
     is >> m_num_output_real;
     m_real_comp_names.resize(m_num_output_real);
-    for (int i = 0; i < m_real_comp_names.size(); ++i) {
-        is >> m_real_comp_names[i];
+    for (auto& real_comp_name : m_real_comp_names) {
+        is >> real_comp_name;
     }
     is >> m_num_output_int;
-    for (int i = 0; i < m_int_comp_names.size(); ++i) {
-        is >> m_int_comp_names[i];
+    for (auto& int_comp_name : m_int_comp_names) {
+        is >> int_comp_name;
     }
     is >> m_is_checkpoint;
     is >> m_total_particles;

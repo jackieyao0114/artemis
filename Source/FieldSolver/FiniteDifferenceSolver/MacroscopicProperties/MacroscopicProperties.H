@@ -53,10 +53,21 @@ public:
       *  with user-defined functions(x,y,z).
       */
      void InitializeMacroMultiFabUsingParser (amrex::MultiFab *macro_mf,
-                                  amrex::ParserExecutor<3> const& macro_parser,
-                                  const int lev);
+                                              amrex::ParserExecutor<3> const& macro_parser,
+                                              const int lev);
 
-     /** Gpu Vector with index type of the conductivity multifab */
+    void InitializeMacroMultiFabFromNumpy (amrex::MultiFab* macro_mf,
+                                           const std::string& npy_filename,
+                                           const int lev,
+                                           const int npy_k_index,
+                                           const amrex::Real npy_value);
+
+    void InitializePECFromSigma (amrex::MultiFab* sigma_mf,
+                                 amrex::MultiFab* PECx,
+                                 amrex::MultiFab* PECy,
+                                 const int npy_k_index);
+
+    /** Gpu Vector with index type of the conductivity multifab */
      amrex::GpuArray<int, 3> sigma_IndexType;
      /** Gpu Vector with index type of the permittivity multifab */
      amrex::GpuArray<int, 3> epsilon_IndexType;
@@ -87,6 +98,20 @@ public:
      amrex::Real m_epsilon = PhysConst::ep0;
      /** Permeability, mu, of the medium */
      amrex::Real m_mu = PhysConst::mu0;
+     /** index to insert the mask */
+     int m_npy_k_index = 0;
+     int m_npy_k_index2 = 0;
+     /** numpy arrays for layer */
+     std::string m_sigma_npy_filename;
+     std::string m_sigma_npy_filename2;
+     std::string m_epsilon_npy_filename;
+     std::string m_epsilon_npy_filename2;
+     std::string m_mu_npy_filename;
+     std::string m_mu_npy_filename2;
+     /** numerical value of sigma, epsilon, and mu for gds numpy array layer */
+     amrex::Real m_sigma_npy_value = 0.;
+     amrex::Real m_epsilon_npy_value = 0.;
+     amrex::Real m_mu_npy_value = 0.;
      /** Parser Wrappers */
      std::unique_ptr<amrex::Parser> m_sigma_parser;
      std::unique_ptr<amrex::Parser> m_epsilon_parser;
@@ -123,7 +148,7 @@ public:
      int getmag_max_iter () {return m_mag_max_iter;}
      amrex::Real getmag_tol () {return m_mag_tol;}
 
-     // interpolate the magnetic properties to B locations
+    // interpolate the magnetic properties to B locations
      // magnetic properties are cell nodal
      // B locations are face centered
      // iv is an IntVect with a 1 in the face direction of interest, and 0 in the others

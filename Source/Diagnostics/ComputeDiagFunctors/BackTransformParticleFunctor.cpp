@@ -5,9 +5,12 @@
  * License: BSD-3-Clause-LBNL
  */
 #include "BackTransformParticleFunctor.H"
+
 #include "Particles/Pusher/GetAndSetPosition.H"
 #include "Particles/WarpXParticleContainer.H"
+#include "Utils/WarpXConst.H"
 #include "WarpX.H"
+
 #include <AMReX.H>
 #include <AMReX_Print.H>
 #include <AMReX_BaseFwd.H>
@@ -75,7 +78,7 @@ BackTransformParticleFunctor::BackTransformParticleFunctor (
 
 
 void
-BackTransformParticleFunctor::operator () (ParticleContainer& pc_dst, int &totalParticleCounter, int i_buffer) const
+BackTransformParticleFunctor::operator () (PinnedMemoryParticleContainer& pc_dst, int &totalParticleCounter, int i_buffer) const
 {
     if (m_perform_backtransform[i_buffer] == 0) return;
     auto &warpx = WarpX::GetInstance();
@@ -87,7 +90,7 @@ BackTransformParticleFunctor::operator () (ParticleContainer& pc_dst, int &total
         amrex::Real dt = warpx.getdt(0);
 
         for (WarpXParIter pti(*m_pc_src, lev); pti.isValid(); ++pti) {
-            auto ptile_dst = pc_dst.DefineAndReturnParticleTile(lev, pti.index(), pti.LocalTileIndex() );
+            pc_dst.DefineAndReturnParticleTile(lev, pti.index(), pti.LocalTileIndex() );
         }
 
         auto& particles = m_pc_src->GetParticles(lev);
@@ -142,6 +145,7 @@ BackTransformParticleFunctor::operator () (ParticleContainer& pc_dst, int &total
                    if (Flag[i] == 1) GetParticleLorentzTransform(dst_data, src_data, i,
                                                                  old_size + IndexLocation[i]);
                 });
+                amrex::Gpu::synchronize();
             }
         }
     }
